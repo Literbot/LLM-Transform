@@ -7,19 +7,21 @@
     <title>{{ title }}</title> <!-- 渲染傳遞過來的標題 -->
 </head>
 <body>
-    <h1>{{ title }}</h1>  <!-- 顯示標題 -->
+    <div><h1>{{ title }}</h1>  <!-- 顯示標題 --></div>
     
     <form id="convert-form">
-        <label for="source-code">請輸入程式碼：</label>
+        <label for="source-code">請輸入程式碼：<br></label>
         <textarea id="source-code" name="source-code" rows="4" cols="50"></textarea><br>
 
-        <label for="source-lang">原始語言：</label>
+        <label for="source-lang">原始語言：<br></label>
+        <select name="source-lang" id="source-lang"></select>
         <input type="text" id="source-lang" name="source-lang"><br>
 
-        <label for="target-lang">目標語言：</label>
+        <label for="target-lang">目標語言：<br></label>
+        <select name="target-lang" id="target-lang"></select>
         <input type="text" id="target-lang" name="target-lang"><br>
 
-        <label for="model">選擇模型：</label>
+        <label for="model">選擇模型：<br></label>
         <select id="model" name="model">
             <option value="gpt-3">GPT-3</option>
             <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
@@ -30,7 +32,7 @@
         <button type="submit">提交</button>
     </form>
 
-    <h2>轉換後的程式碼：</h2>
+    <div><h2>轉換後的程式碼：</h2></div>
     <pre id="converted-code"></pre>
 
     <script>
