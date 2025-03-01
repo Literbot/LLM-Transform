@@ -14,12 +14,26 @@
         <textarea id="source-code" name="source-code" rows="4" cols="50"></textarea><br>
 
         <label for="source-lang">原始語言：<br></label>
-        <select name="source-lang" id="source-lang"></select>
-        <input type="text" id="source-lang" name="source-lang"><br>
-
+        <select name="source-lang" id="source-lang">
+            <option value="c">C</option>
+            <option value="c++">C++</option>
+            <option value="c#">C#</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="javascript">JavaScript</option>
+            <option value="php">PHP</option>
+            <option value="ruby">Ruby</option>
+        </select><br>
+        
         <label for="target-lang">目標語言：<br></label>
-        <select name="target-lang" id="target-lang"></select>
-        <input type="text" id="target-lang" name="target-lang"><br>
+        <select name="target-lang" id="target-lang">
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="javascript">JavaScript</option>
+            <option value="php">PHP</option>
+            <option value="ruby">Ruby</option>
+        </select><br>
+        
 
         <label for="model">選擇模型：<br></label>
         <select id="model" name="model">
@@ -35,31 +49,7 @@
     <div><h2>轉換後的程式碼：</h2></div>
     <pre id="converted-code"></pre>
 
-    <script>
-        document.getElementById('convert-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
 
-            const model = document.getElementById('model').value;
-            const sourceCode = document.getElementById('source-code').value;
-            const sourceLang = document.getElementById('source-lang').value;
-            const targetLang = document.getElementById('target-lang').value;
-
-            const response = await fetch('http://127.0.0.1:5001/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: model,
-                    code: sourceCode,
-                    source_lang: sourceLang,
-                    target_lang: targetLang
-                })
-            });
-            
-            const data = await response.json();
-            document.getElementById('converted-code').textContent = data.converted_code;
-        });
-    </script>
 </body>
 </html>
