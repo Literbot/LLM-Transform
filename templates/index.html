@@ -1,0 +1,60 @@
+<!-- templates/chat.html -->
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title> <!-- 渲染傳遞過來的標題 -->
+</head>
+<body>
+    <div><h1>{{ title }}</h1>  <!-- 顯示標題 --></div>
+    
+    <form id="convert-form">
+        <label for="source-code">請輸入程式碼：<br></label>
+        <textarea id="source-code" name="source-code" rows="4" cols="50"></textarea><br>
+
+        <label for="source-lang">原始語言：<br></label>
+        <select name="source-lang" id="source-lang">
+            <option value="c">C</option>
+            <option value="c++">C++</option>
+            <option value="c#">C#</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="javascript">JavaScript</option>
+            <option value="php">PHP</option>
+            <option value="ruby">Ruby</option>
+        </select><br>
+        
+        <label for="target-lang">目標語言：<br></label>
+        <select name="target-lang" id="target-lang">
+            <option value="c">C</option>
+            <option value="c++">C++</option>
+            <option value="c#">C#</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="javascript">JavaScript</option>
+            <option value="php">PHP</option>
+            <option value="ruby">Ruby</option>
+        </select><br>
+        
+
+        <label for="model">選擇模型：<br></label>
+        <select id="model" name="model">
+            <option value="gpt-3">GPT-3</option>
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            <option value="gpt-4">GPT-4</option>
+        </select><br>
+
+        <button type="submit">提交</button>
+    </form>
+
+    <div><h2>轉換後的程式碼：</h2></div>
+    <textarea  id="convert-code" rows="10" cols="50" readonly></textarea> <!-- 顯示轉換後的程式碼(readonly唯讀可複製及滾動) -->
+
+    <pre id="converted-code"></pre>
+
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+
+</body>
+</html>
