@@ -1,59 +1,96 @@
 import openai
-import requests
 from flask import Flask, request, render_template, jsonify
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+import re
 
 app = Flask(__name__)
 
-# OpenAI API Key（如果沒有，請留空）
-OPENAI_API_KEY = ""  # 如果有 OpenAI API 金鑰，填入這裡
-HUGGINGFACE_API_KEY = "你的 Hugging Face API Key"
+# API Keys（請替換為你自己的金鑰）
+OPENAI_API_KEY = "your-openai-api-key"
+HUGGINGFACE_API_KEY = "your-huggingface-api-key"
 
-# Hugging Face 模型
-HF_MODEL_NAME = "google/gemma-3-4b-it"  # Gemma 模型名稱
-hf_tokenizer = AutoTokenizer.from_pretrained(HF_MODEL_NAME)
-hf_model = AutoModelForCausalLM.from_pretrained(HF_MODEL_NAME)
+# Hugging Face 模型資訊
+HF_MODEL_NAME = 'bigcode/StarCoder2-3B'
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# 載入 tokenizer 和模型，並放置到對應設備上（GPU 或 CPU）
+hf_tokenizer = AutoTokenizer.from_pretrained(HF_MODEL_NAME, trust_remote_code=True)
+hf_model = AutoModelForCausalLM.from_pretrained(HF_MODEL_NAME, trust_remote_code=True).to(device)
+
+# 從 Hugging Face 模型輸出中提取翻譯後的程式碼
+
+def extract_translated_code(generated_text, prompt, target_lang):
+    pattern = rf"```{target_lang.lower()}\s*(.*?)```"
+    matches = re.findall(pattern, generated_text, re.DOTALL)
+    if matches:
+        return matches[0].strip()
+    cleaned = generated_text.replace(prompt, "").strip()
+    return cleaned.split('\n')[0].strip()
+
+# 從 OpenAI 回傳的內容中擷取翻譯後的程式碼區塊
+def extract_openai_code(response_text, target_lang):
+    pattern = rf"```{target_lang.lower()}\s*(.*?)```"
+    match = re.search(pattern, response_text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return response_text.strip()
 
 @app.route('/', methods=['GET', 'POST'])
 def convert_code():
     if request.method == 'GET':
-        return render_template('index.html', title='Code Converter')
+        return render_template('index.html', title='程式碼轉換工具')
 
     if request.method == 'POST':
-        data = request.json
+        data = request.get_json(force=True)
+
+        print(data)  # Debug
         source_code = data['code']
         source_lang = data['source_lang']
         target_lang = data['target_lang']
-        model_choice = data['model']  # 使用者選擇的模型 (openai / huggingface)
+        model_choice = data['model']
 
-        prompt = f"### 轉換程式碼\n將以下 {source_lang} 程式碼轉換為 {target_lang}:\n{source_code}\n### 結果："
+        # 強化 prompt 格式
+        prompt = f"""Please translate the following {source_lang} code to {target_lang}.
+Respond with **only the translated code** inside the code block. Do not add explanations or examples.
 
-        # 如果使用者選擇 OpenAI，且有 API Key
+Example output format:
+```{target_lang.lower()}
+console.log(\"Hello\");
+```
+
+Now, translate this:
+```{source_lang.lower()}
+{source_code}
+```"""
+
         if model_choice == "openai" and OPENAI_API_KEY:
             try:
-                client = openai.OpenAI(api_key = OPENAI_API_KEY)
-                response = client.chat.completions.create(
-                    model="gpt-4-turbo",  # 可以改成 gpt-3.5-turbo
+                openai.api_key = OPENAI_API_KEY
+                response = openai.ChatCompletion.create(
+                    model="gpt-4",
                     messages=[{"role": "user", "content": prompt}],
-                    max_tokens=300,
+                    max_tokens=500,
                     temperature=0.3
                 )
-                converted_code = response.choices[0].message.content
+                raw_output = response['choices'][0]['message']['content']
+                converted_code = extract_openai_code(raw_output, target_lang)
             except Exception as e:
                 return jsonify({"error": f"OpenAI API 出錯: {str(e)}"}), 500
 
-        # 如果選擇使用 Gemma
         elif model_choice == "huggingface":
             try:
-                headers = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
-                response = requests.post(
-                    f"https://api-inference.huggingface.co/models/{HF_MODEL_NAME}",
-                    headers=headers,
-                    json={"inputs": prompt}
+                inputs = hf_tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512).to(device)
+                outputs = hf_model.generate(
+                    **inputs,
+                    max_length=300,
+                    temperature=0.5,
+                    num_return_sequences=1,
+                    top_p=0.95,
+                    do_sample=True
                 )
-                result = response.json()
-                converted_code = result[0]["generated_text"] if isinstance(result, list) else "Hugging Face API 出錯"
+                raw_output = hf_tokenizer.decode(outputs[0], skip_special_tokens=True)
+                converted_code = extract_translated_code(raw_output, prompt, target_lang)
             except Exception as e:
                 return jsonify({"error": f"Hugging Face API 出錯: {str(e)}"}), 500
 

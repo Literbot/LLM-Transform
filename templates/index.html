@@ -1,50 +1,56 @@
-<!-- templates/chat.html -->
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title> <!-- 渲染傳遞過來的標題 -->
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
 </head>
 <body>
-    <div><h1>{{ title }}</h1>  <!-- 顯示標題 --></div>
-    
-    <form id="convert-form">
-        <label for="source-code">請輸入程式碼：<br></label>
-        <textarea id="source-code" rows="4" cols="50"></textarea><br>
+    <div class="container">
+        <h1>{{ title }}</h1>
 
-        <label for="source-lang">原始語言：<br></label>
-        <select id="source-lang">
-            <option value="python">Python</option>
-            <option value="java">Java</option>
-            <option value="javascript">JavaScript</option>
-        </select><br>
-        
-        <label for="target-lang">目標語言：<br></label>
-        <select id="target-lang">
-            <option value="python">Python</option>
-            <option value="java">Java</option>
-            <option value="javascript">JavaScript</option>
-        </select><br>
-        
+        <form id="codeForm" class="form-box">
+            <label for="source_lang">初始語言:</label>
+            <select id="source_lang" required>
+                <option value="Python">Python</option>
+                <option value="JavaScript">JavaScript</option>
+            </select>
 
-        <label for="model">選擇模型：<br></label>
-        <select id="model">
-            <option value="gpt-3">GPT-3</option>
-            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-            <option value="gpt-4-turbo">GPT-4 Turbo</option>
-            <option value="gpt-4">GPT-4</option>
-        </select><br>
+            <label for="target_lang">目標語言:</label>
+            <select id="target_lang" required>
+                <option value="Python">Python</option>
+                <option value="JavaScript">JavaScript</option>
+            </select>
 
-        <button type="submit" id="sub">提交</button>
-    </form>
+            <label for="model">選擇模型:</label>
+            <select id="model" required>
+                <option value="huggingface">Hugging Face (bigcode/StarCoder2-3B)</option>
+                <option value="openai">OpenAI (GPT-3/GPT-4)</option>
+            </select>
 
-    <div><h2>轉換後的程式碼：</h2></div>
-    <textarea  id="convert-code" rows="10" cols="50" readonly></textarea> <!-- 顯示轉換後的程式碼(readonly唯讀可複製及滾動) -->
+            <div id="apikey_section" style="display:none;">
+                <label for="openai_key">OpenAI API 金鑰:</label>
+                <input type="password" id="openai_key" placeholder="sk-xxxx...">
+            </div>
 
-    <pre id="converted-code"></pre>
+            <label for="code">程式碼:</label>
+            <textarea id="code" rows="10" cols="50" required></textarea>
 
-    <script src="{{ url_for('static', filename='index.js') }}"></script>
+            <button type="submit">轉換程式碼</button>
+        </form>
 
+        <h3>轉換結果:</h3>
+        <div id="result-box"></div>
+    </div>
+
+    <script>
+        document.getElementById("model").addEventListener("change", function () {
+            const selected = this.value;
+            const apikeyField = document.getElementById("apikey_section");
+            apikeyField.style.display = selected === "openai" ? "block" : "none";
+        });
+    </script>
 </body>
 </html>
