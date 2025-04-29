@@ -51,18 +51,17 @@ def convert_code():
         model_choice = data['model']
 
         # 強化 prompt 格式
-        prompt = f"""Please translate the following {source_lang} code to {target_lang}.
-Respond with **only the translated code** inside the code block. Do not add explanations or examples.
+        prompt = f"""<filename>solutions/translate_solution.{target_lang.lower()}
+        # Here is the correct {target_lang} translation of the provided {source_lang} code.
 
-Example output format:
-```{target_lang.lower()}
-console.log(\"Hello\");
-```
+        Respond with only the translated code inside a code block. Do not add explanations, comments, or examples.
 
-Now, translate this:
-```{source_lang.lower()}
-{source_code}
-```"""
+        Example output format:
+        ```{target_lang.lower()}
+        console.log("Hello");
+        Now, please translate the following {source_lang} code:
+        {source_code}
+        ```"""
 
         if model_choice == "openai" and OPENAI_API_KEY:
             try:
